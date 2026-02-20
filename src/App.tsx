@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { MultiUserApp } from './components/MultiUserApp';
 import { LoginScreen } from './components/LoginScreen';
+import { addTask, getTasks, updateTask, deleteTask } from './tasks'
 
 export default function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);

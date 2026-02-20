@@ -1,0 +1,17 @@
+# Dependencies
+node_modules
+
+# Environment variables (VERY IMPORTANT - keeps your keys safe)
+.env
+.env.local
+.env.production
+
+# Build output
+dist
+
+# Vite cache
+.vite
+
+# OS files
+.DS_Store
+Thumbs.db

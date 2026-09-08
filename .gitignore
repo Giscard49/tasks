@@ -1,17 +1,47 @@
 # Dependencies
-node_modules
+node_modules/
+backend/node_modules/
 
-# Environment variables (VERY IMPORTANT - keeps your keys safe)
+# Environment variables and local secrets
 .env
-.env.local
-.env.production
+.env.*
+!.env.example
 
-# Build output
-dist
+# Frontend build output and tooling caches
+dist/
+build/
+.vite/
+.cache/
+coverage/
 
-# Vite cache
-.vite
+# Backend logs and runtime files
+*.log
+logs/
+backend/uploads/
+backend/tmp/
 
-# OS files
+# Tests and coverage output
+.nyc_output/
+*.lcov
+
+# Editor settings and workspace files
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.example.json
+.idea/
+*.suo
+*.user
+*.userossc
+*.sln.docstates
+
+# Operating system files
 .DS_Store
 Thumbs.db
+Desktop.ini
+
+# Temporary files
+*.tmp
+*.temp
+*.swp
+*.swo
+*~

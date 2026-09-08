@@ -8,6 +8,7 @@ interface TodoListProps {
   onToggle: (id: string) => void;
   onDelete: (id: string) => void;
   onEdit: (id: string) => void;
+  onShare?: (id: string) => void;
   onUpdate: (id: string, text: string, priority: 'low' | 'medium' | 'high', dueDate?: Date) => void;
 }
 
@@ -17,7 +18,8 @@ export function TodoList({
   onToggle, 
   onDelete, 
   onEdit, 
-  onUpdate 
+  onUpdate,
+  onShare,
 }: TodoListProps) {
   return (
     <div className="space-y-2">
@@ -38,6 +40,7 @@ export function TodoList({
               onToggle={() => onToggle(todo.id)}
               onDelete={() => onDelete(todo.id)}
               onEdit={() => onEdit(todo.id)}
+              onShare={onShare ? () => onShare(todo.id) : undefined}
             />
           )}
         </div>

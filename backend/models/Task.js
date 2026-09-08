@@ -2,7 +2,9 @@ const mongoose = require('mongoose');
 const taskSchema = new mongoose.Schema({
     title: {
         type: String,
-        required: true
+        required: true,
+        trim: true,
+        maxlength: 200,
     },
     completed: {
         type: Boolean,
@@ -11,17 +13,30 @@ const taskSchema = new mongoose.Schema({
     priority: {
         type: String,
         enum: ['low', 'medium', 'high'],
-        defualt : 'medium'
+        default: 'medium'
     },
-    date: {
-        type: Date,
-        default: Date.now
-    },
-    userId: {
+    dueDate: Date,
+    dueTime: String,
+    owner: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'Users',
-        required: true
+        ref: 'User',
+        required: true,
     },
-    time: String,
-})
+    sharedWith: [{
+        user: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'User',
+            required: true,
+        },
+        permission: {
+            type: String,
+            enum: ['read', 'write'],
+            default: 'read',
+        },
+    }],
+}, { timestamps: true });
+
+taskSchema.index({ owner: 1, createdAt: -1 });
+taskSchema.index({ 'sharedWith.user': 1, createdAt: -1 });
+
 module.exports = mongoose.model('Task', taskSchema);

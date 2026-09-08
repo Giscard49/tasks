@@ -7,6 +7,10 @@ import { NotificationManager } from './NotificationManager';
 import { Button } from './ui/button';
 import { Avatar, AvatarFallback } from './ui/avatar';
 import { Plus, ArrowLeft, Heart, Users } from 'lucide-react';
+import { createTask, deleteTask, shareTask, updateTask } from '../api';
+import type { ApiTask } from '../api';
+import { Input } from './ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 
 export interface Todo {
   id: string;
@@ -30,64 +34,91 @@ interface User {
 
 interface UserTodoAppProps {
   user: User;
+  currentUserId: string;
+  token: string;
+  tasks: ApiTask[];
+  onTasksChange: React.Dispatch<React.SetStateAction<ApiTask[]>>;
   onBack: () => void;
 }
 
-export function UserTodoApp({ user, onBack }: UserTodoAppProps) {
+export function UserTodoApp({ user, currentUserId, token, tasks, onTasksChange, onBack }: UserTodoAppProps) {
   const [todos, setTodos] = useState<Todo[]>([]);
   const [filter, setFilter] = useState<FilterType>('all');
   const [sort, setSort] = useState<SortType>('newest');
   const [isAddingTodo, setIsAddingTodo] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [error, setError] = useState('');
+  const [sharingId, setSharingId] = useState<string | null>(null);
+  const [shareUsername, setShareUsername] = useState('');
+  const [sharePermission, setSharePermission] = useState<'read' | 'write'>('read');
 
   const isShared = user.type === 'shared';
 
-  // Load user-specific todos from localStorage on mount
   useEffect(() => {
-    const savedTodos = localStorage.getItem(`todos_${user.id}`);
-    if (savedTodos) {
-      const parsed = JSON.parse(savedTodos);
-      setTodos(parsed.map((todo: any) => ({
-        ...todo,
-        createdAt: new Date(todo.createdAt),
-        dueDate: todo.dueDate ? new Date(todo.dueDate) : undefined
-      })));
+    const visibleTasks = isShared
+      ? tasks.filter(task => typeof task.owner !== 'string' && task.owner._id !== currentUserId)
+      : tasks.filter(task => (typeof task.owner === 'string' ? task.owner : task.owner._id) === currentUserId);
+    setTodos(visibleTasks.map(task => ({
+      id: task._id,
+      text: task.title,
+      completed: task.completed,
+      priority: task.priority,
+      createdAt: new Date(task.createdAt),
+      dueDate: task.dueDate ? new Date(task.dueDate) : undefined,
+    })));
+  }, [currentUserId, isShared, tasks]);
+
+  const addTodo = async (text: string, priority: 'low' | 'medium' | 'high', dueDate?: Date) => {
+    try {
+      const task = await createTask(token, { title: text, priority, dueDate: dueDate?.toISOString() });
+      onTasksChange(prev => [task, ...prev]);
+      setIsAddingTodo(false);
+    } catch (requestError) {
+      setError(requestError instanceof Error ? requestError.message : 'Unable to add task');
     }
-  }, [user.id]);
-
-  // Save user-specific todos to localStorage whenever todos change
-  useEffect(() => {
-    localStorage.setItem(`todos_${user.id}`, JSON.stringify(todos));
-  }, [todos, user.id]);
-
-  const addTodo = (text: string, priority: 'low' | 'medium' | 'high', dueDate?: Date) => {
-    const newTodo: Todo = {
-      id: Date.now().toString(),
-      text,
-      completed: false,
-      priority,
-      createdAt: new Date(),
-      dueDate
-    };
-    setTodos(prev => [newTodo, ...prev]);
-    setIsAddingTodo(false);
   };
 
-  const updateTodo = (id: string, text: string, priority: 'low' | 'medium' | 'high', dueDate?: Date) => {
-    setTodos(prev => prev.map(todo => 
-      todo.id === id ? { ...todo, text, priority, dueDate } : todo
-    ));
-    setEditingId(null);
+  const updateTodo = async (id: string, text: string, priority: 'low' | 'medium' | 'high', dueDate?: Date) => {
+    try {
+      const task = await updateTask(token, id, { title: text, priority, dueDate: dueDate?.toISOString() });
+      onTasksChange(prev => prev.map(item => item._id === id ? task : item));
+      setEditingId(null);
+    } catch (requestError) {
+      setError(requestError instanceof Error ? requestError.message : 'Unable to update task');
+    }
   };
 
-  const toggleTodo = (id: string) => {
-    setTodos(prev => prev.map(todo => 
-      todo.id === id ? { ...todo, completed: !todo.completed } : todo
-    ));
+  const toggleTodo = async (id: string) => {
+    const todo = todos.find(item => item.id === id);
+    if (!todo) return;
+    try {
+      const task = await updateTask(token, id, { completed: !todo.completed });
+      onTasksChange(prev => prev.map(item => item._id === id ? task : item));
+    } catch (requestError) {
+      setError(requestError instanceof Error ? requestError.message : 'Unable to update task');
+    }
   };
 
-  const deleteTodo = (id: string) => {
-    setTodos(prev => prev.filter(todo => todo.id !== id));
+  const deleteTodo = async (id: string) => {
+    try {
+      await deleteTask(token, id);
+      onTasksChange(prev => prev.filter(item => item._id !== id));
+    } catch (requestError) {
+      setError(requestError instanceof Error ? requestError.message : 'Unable to delete task');
+    }
+  };
+
+  const submitShare = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (!sharingId || !shareUsername.trim()) return;
+    try {
+      const task = await shareTask(token, sharingId, shareUsername.trim(), sharePermission);
+      onTasksChange(prev => prev.map(item => item._id === task._id ? task : item));
+      setSharingId(null);
+      setShareUsername('');
+    } catch (requestError) {
+      setError(requestError instanceof Error ? requestError.message : 'Unable to share task');
+    }
   };
 
   const filteredTodos = todos.filter(todo => {
@@ -137,6 +168,7 @@ export function UserTodoApp({ user, onBack }: UserTodoAppProps) {
   return (
     <div className={`min-h-screen ${isShared ? 'bg-gradient-to-br from-blue-50 to-purple-50 dark:from-blue-950/10 dark:to-purple-950/10' : 'bg-background'}`}>
       <div className="max-w-md mx-auto p-4 space-y-6">
+        {error && <p className="text-sm text-destructive">{error}</p>}
         {/* Header with Back Button */}
         <div className="flex items-center justify-between pt-8">
           <div className="flex items-center gap-3">
@@ -235,10 +267,34 @@ export function UserTodoApp({ user, onBack }: UserTodoAppProps) {
           onDelete={deleteTodo}
           onEdit={setEditingId}
           onUpdate={updateTodo}
+          onShare={isShared ? undefined : setSharingId}
         />
 
+        {sharingId && (
+          <form onSubmit={submitShare} className="space-y-3 rounded-lg border p-4">
+            <p className="font-medium">Share this task</p>
+            <Input
+              value={shareUsername}
+              onChange={(event) => setShareUsername(event.target.value)}
+              placeholder="Username"
+              autoFocus
+            />
+            <Select value={sharePermission} onValueChange={(value) => setSharePermission(value as 'read' | 'write')}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="read">Can view</SelectItem>
+                <SelectItem value="write">Can edit</SelectItem>
+              </SelectContent>
+            </Select>
+            <div className="flex gap-2">
+              <Button type="submit" disabled={!shareUsername.trim()}>Share</Button>
+              <Button type="button" variant="outline" onClick={() => setSharingId(null)}>Cancel</Button>
+            </div>
+          </form>
+        )}
+
         {/* Add Button */}
-        {!isAddingTodo && (
+        {!isShared && !isAddingTodo && (
           <Button
             onClick={() => setIsAddingTodo(true)}
             className={`w-full h-12 gap-2 ${

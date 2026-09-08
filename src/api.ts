@@ -22,14 +22,21 @@ export interface ApiTask {
 }
 
 async function request<T>(path: string, options: RequestInit = {}, token?: string): Promise<T> {
-  const response = await fetch(`${API_URL}${path}`, {
-    ...options,
-    headers: {
-      'Content-Type': 'application/json',
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      ...options.headers,
-    },
-  });
+  let response: Response;
+
+  try {
+    response = await fetch(`${API_URL}${path}`, {
+      ...options,
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        ...options.headers,
+      },
+    });
+  } catch (error) {
+    const reason = error instanceof Error ? error.message : 'Unknown network error';
+    throw new Error(`Unable to reach the server. Start the backend and try again. (${reason})`);
+  }
 
   const body = await response.json().catch(() => null);
   if (!response.ok) {

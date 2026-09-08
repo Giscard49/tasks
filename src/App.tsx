@@ -1,29 +1,33 @@
 import { useState, useEffect } from 'react';
 import { MultiUserApp } from './components/MultiUserApp';
 import { LoginScreen } from './components/LoginScreen';
-import { addTask, getTasks, updateTask, deleteTask } from './tasks'
+import type { AuthSession } from './api';
 
 export default function App() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [session, setSession] = useState<AuthSession | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   // Check if user is already authenticated on app start
   useEffect(() => {
-    const authToken = localStorage.getItem('todoapp_auth');
-    if (authToken === 'authenticated') {
-      setIsAuthenticated(true);
+    const savedSession = localStorage.getItem('todoapp_session');
+    if (savedSession) {
+      try {
+        setSession(JSON.parse(savedSession));
+      } catch {
+        localStorage.removeItem('todoapp_session');
+      }
     }
     setIsLoading(false);
   }, []);
 
-  const handleLogin = () => {
-    localStorage.setItem('todoapp_auth', 'authenticated');
-    setIsAuthenticated(true);
+  const handleLogin = (newSession: AuthSession) => {
+    localStorage.setItem('todoapp_session', JSON.stringify(newSession));
+    setSession(newSession);
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('todoapp_auth');
-    setIsAuthenticated(false);
+    localStorage.removeItem('todoapp_session');
+    setSession(null);
   };
 
   // Show loading state briefly on app start
@@ -36,10 +40,10 @@ export default function App() {
   }
 
   // Show login screen if not authenticated
-  if (!isAuthenticated) {
+  if (!session) {
     return <LoginScreen onLogin={handleLogin} />;
   }
 
   // Show main app if authenticated
-  return <MultiUserApp onLogout={handleLogout} />;
+  return <MultiUserApp session={session} onLogout={handleLogout} />;
 }

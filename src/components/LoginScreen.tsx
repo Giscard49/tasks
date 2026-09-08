@@ -5,15 +5,12 @@ import { Input } from './ui/input';
 import { Label } from './ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Alert, AlertDescription } from './ui/alert';
+import { login, register } from '../api';
+import type { AuthSession } from '../api';
 
 interface LoginScreenProps {
-  onLogin: () => void;
+  onLogin: (session: AuthSession) => void;
 }
-
-const VALID_CREDENTIALS = [
-  { username: 'ceanna', password: 'Kigali250' },
-  { username: 'giscard', password: 'Kigali250' }
-];
 
 export function LoginScreen({ onLogin }: LoginScreenProps) {
   const [username, setUsername] = useState('');
@@ -21,23 +18,18 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isRegistering, setIsRegistering] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setIsLoading(true);
 
-    // Simulate loading delay
-    await new Promise(resolve => setTimeout(resolve, 1000));
-
-    const isValid = VALID_CREDENTIALS.some(
-      cred => cred.username === username.toLowerCase() && cred.password === password
-    );
-
-    if (isValid) {
-      onLogin();
-    } else {
-      setError('Invalid username or password. Please try again.');
+    try {
+      const session = await (isRegistering ? register(username, password) : login(username, password));
+      onLogin(session);
+    } catch (requestError) {
+      setError(requestError instanceof Error ? requestError.message : 'Unable to sign in');
     }
 
     setIsLoading(false);
@@ -64,7 +56,7 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
 
         <Card className="shadow-lg">
           <CardHeader className="space-y-1">
-            <CardTitle className="text-xl">Sign in</CardTitle>
+            <CardTitle className="text-xl">{isRegistering ? 'Create account' : 'Sign in'}</CardTitle>
             <CardDescription>
               Enter your credentials to continue
             </CardDescription>
@@ -121,7 +113,18 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
                 className="w-full" 
                 disabled={isLoading}
               >
-                {isLoading ? 'Signing in...' : 'Sign in'}
+                {isLoading ? (isRegistering ? 'Creating account...' : 'Signing in...') : (isRegistering ? 'Create account' : 'Sign in')}
+              </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                className="w-full"
+                onClick={() => {
+                  setIsRegistering(value => !value);
+                  setError('');
+                }}
+              >
+                {isRegistering ? 'Already have an account? Sign in' : 'Need an account? Sign up'}
               </Button>
             </form>
           </CardContent>

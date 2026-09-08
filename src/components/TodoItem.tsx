@@ -3,7 +3,7 @@ import { Checkbox } from './ui/checkbox';
 import { Button } from './ui/button';
 import { Card } from './ui/card';
 import { Badge } from './ui/badge';
-import { Trash2, Edit3, Calendar, AlertTriangle } from 'lucide-react';
+import { Trash2, Edit3, Calendar, AlertTriangle, Share2 } from 'lucide-react';
 import { Todo } from './TodoApp';
 
 interface TodoItemProps {
@@ -11,9 +11,10 @@ interface TodoItemProps {
   onToggle: () => void;
   onDelete: () => void;
   onEdit: () => void;
+  onShare?: () => void;
 }
 
-export function TodoItem({ todo, onToggle, onDelete, onEdit }: TodoItemProps) {
+export function TodoItem({ todo, onToggle, onDelete, onEdit, onShare }: TodoItemProps) {
   const getPriorityIndicator = (priority: string) => {
     switch (priority) {
       case 'high':
@@ -154,6 +155,18 @@ export function TodoItem({ todo, onToggle, onDelete, onEdit }: TodoItemProps) {
             >
               <Edit3 className="w-4 h-4 text-muted-foreground" />
             </Button>
+
+            {onShare && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={onShare}
+                className="h-8 w-8 p-0 hover:bg-accent"
+                title="Share task"
+              >
+                <Share2 className="w-4 h-4 text-muted-foreground" />
+              </Button>
+            )}
             
             <Button
               variant="ghost"

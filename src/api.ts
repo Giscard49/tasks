@@ -65,6 +65,23 @@ export function login(username: string, password: string) {
   });
 }
 
+export interface AuthStatus {
+  userCount: number;
+  maxAccounts: number;
+  registrationOpen: boolean;
+}
+
+export function getAuthStatus() {
+  return request<AuthStatus>('/auth/status');
+}
+
+export function register(username: string, password: string) {
+  return request<AuthSession>('/auth/register', {
+    method: 'POST',
+    body: JSON.stringify({ username, password }),
+  });
+}
+
 export function logout() {
   return request<void>('/auth/logout', { method: 'POST' });
 }

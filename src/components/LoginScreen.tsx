@@ -1,11 +1,11 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Eye, EyeOff, CheckCircle2 } from 'lucide-react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Alert, AlertDescription } from './ui/alert';
-import { login } from '../api';
+import { getAuthStatus, login, register } from '../api';
 import type { AuthSession } from '../api';
 
 interface LoginScreenProps {
@@ -18,6 +18,23 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isRegistering, setIsRegistering] = useState(false);
+  // Sign-up stays hidden until the server says there is still room for an account.
+  const [registrationOpen, setRegistrationOpen] = useState(false);
+
+  useEffect(() => {
+    getAuthStatus()
+      .then((status) => setRegistrationOpen(status.registrationOpen))
+      .catch(() => setRegistrationOpen(false));
+  }, []);
+
+  // If the second account gets created while this screen is in sign-up mode, fall back.
+  useEffect(() => {
+    if (isRegistering && !registrationOpen) {
+      setIsRegistering(false);
+      setError('');
+    }
+  }, [isRegistering, registrationOpen]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -25,10 +42,16 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
     setIsLoading(true);
 
     try {
-      const session = await login(username, password);
+      const session = await (isRegistering ? register(username, password) : login(username, password));
       onLogin(session);
     } catch (requestError) {
       setError(requestError instanceof Error ? requestError.message : 'Unable to sign in');
+      // Registration may have just closed — refresh the flag so the link disappears.
+      if (isRegistering) {
+        getAuthStatus()
+          .then((status) => setRegistrationOpen(status.registrationOpen))
+          .catch(() => {});
+      }
     }
 
     setIsLoading(false);
@@ -46,18 +69,22 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
             <CheckCircle2 className="w-8 h-8 text-white" />
           </div>
           <h1 className="text-2xl font-semibold text-gray-900 dark:text-white mb-2">
-            Welcome Back
+            {isRegistering ? 'Create your account' : 'Welcome Back'}
           </h1>
           <p className="text-gray-600 dark:text-gray-400">
-            Sign in to access your tasks
+            {isRegistering
+              ? 'This app only allows two accounts'
+              : 'Sign in to access your tasks'}
           </p>
         </div>
 
         <Card className="shadow-lg">
           <CardHeader className="space-y-1">
-            <CardTitle className="text-xl">Sign in</CardTitle>
+            <CardTitle className="text-xl">{isRegistering ? 'Create account' : 'Sign in'}</CardTitle>
             <CardDescription>
-              Enter your credentials to continue
+              {isRegistering
+                ? 'Pick a username and password for this device'
+                : 'Enter your credentials to continue'}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -71,7 +98,8 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   required
-                  className="w-full"
+                  autoComplete="username"
+                  className="w-full text-base"
                 />
               </div>
 
@@ -81,11 +109,13 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
                   <Input
                     id="password"
                     type={showPassword ? 'text' : 'password'}
-                    placeholder="Enter your password"
+                    placeholder={isRegistering ? 'At least 8 characters' : 'Enter your password'}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
-                    className="w-full pr-10"
+                    minLength={isRegistering ? 8 : undefined}
+                    autoComplete={isRegistering ? 'new-password' : 'current-password'}
+                    className="w-full pr-10 text-base"
                   />
                   <button
                     type="button"
@@ -112,8 +142,24 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
                 className="w-full" 
                 disabled={isLoading}
               >
-                {isLoading ? 'Signing in...' : 'Sign in'}
+                {isLoading
+                  ? (isRegistering ? 'Creating account...' : 'Signing in...')
+                  : (isRegistering ? 'Create account' : 'Sign in')}
               </Button>
+
+              {registrationOpen && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  className="w-full"
+                  onClick={() => {
+                    setIsRegistering(value => !value);
+                    setError('');
+                  }}
+                >
+                  {isRegistering ? 'Already have an account? Sign in' : 'Need an account? Sign up'}
+                </Button>
+              )}
             </form>
           </CardContent>
         </Card>

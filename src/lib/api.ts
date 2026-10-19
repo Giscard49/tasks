@@ -4,6 +4,9 @@ import { Prisma } from '@prisma/client';
 export type Priority = 'low' | 'medium' | 'high';
 export type Permission = 'read' | 'write';
 
+/** Registration is only allowed while fewer than this many accounts exist. */
+export const MAX_ACCOUNTS = 2;
+
 export class ApiError extends Error {
   status: number;
 

@@ -28,12 +28,11 @@ A Next.js to-do app (originally designed in Figma: https://www.figma.com/design/
    - `DIRECT_URL` — Supabase **direct** connection string (port 5432), used by Prisma for schema pushes/migrations.
    - `JWT_SECRET` — a long random string, e.g. `openssl rand -hex 32`.
 
-3. Create the tables in Supabase, generate the Prisma client, and seed the accounts:
+3. Create the tables in Supabase and generate the Prisma client:
 
    ```bash
    npm run db:push      # syncs prisma/schema.prisma to Supabase
    npm run db:generate  # generates the Prisma client
-   npm run db:seed      # creates the two accounts (see below)
    ```
 
    > Tip: if `db:push` has trouble over the pooler, temporarily use the
@@ -49,14 +48,17 @@ A Next.js to-do app (originally designed in Figma: https://www.figma.com/design/
 
 ## Accounts
 
-There is no sign-up flow — the app uses two pre-made accounts (seeded by `npm run db:seed`):
+The app allows **two accounts maximum**, created from the login screen:
 
-| Username | Password      |
-|----------|---------------|
-| `alex`   | `password123` |
-| `sam`    | `password123` |
+- While fewer than two accounts exist, the login screen shows **"Need an account? Sign up"**.
+- Once two accounts exist, sign-up disappears (the API also rejects further sign-ups with `403`).
+- Forgot a password? Wipe all accounts and start over:
 
-To change them, edit `prisma/seed.ts` and run `npm run db:seed` again.
+  ```bash
+  npm run db:reset-accounts
+  ```
+
+  (This deletes every account and its tasks, reopening both sign-up spots.)
 
 ## Project structure
 

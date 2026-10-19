@@ -1,6 +1,6 @@
 # Modern Mobile To-Do List App
 
-A Next.js to-do app (originally designed in Figma: https://www.figma.com/design/NHyKPfEujvXHIjOVcpdVit/Modern-Mobile-To-Do-List-App).
+A Next.js to-do app.
 
 ## Stack
 

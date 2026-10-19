@@ -19,13 +19,28 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isRegistering, setIsRegistering] = useState(false);
-  // Sign-up stays hidden until the server says there is still room for an account.
-  const [registrationOpen, setRegistrationOpen] = useState(false);
+  // Show sign-up immediately, then let the database decide whether it remains open.
+  const [registrationOpen, setRegistrationOpen] = useState(true);
 
   useEffect(() => {
-    getAuthStatus()
-      .then((status) => setRegistrationOpen(status.registrationOpen))
-      .catch(() => setRegistrationOpen(false));
+    let active = true;
+    const refreshRegistrationStatus = () => {
+      getAuthStatus()
+        .then((status) => {
+          if (active) setRegistrationOpen(status.registrationOpen);
+        })
+        .catch(() => {
+          // Keep the sign-up option available if the status check is temporarily unavailable.
+        });
+    };
+
+    refreshRegistrationStatus();
+    // Keep other open login screens in sync when the second account is created elsewhere.
+    const interval = window.setInterval(refreshRegistrationStatus, 5000);
+    return () => {
+      active = false;
+      window.clearInterval(interval);
+    };
   }, []);
 
   // If the second account gets created while this screen is in sign-up mode, fall back.

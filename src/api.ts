@@ -72,7 +72,7 @@ export interface AuthStatus {
 }
 
 export function getAuthStatus() {
-  return request<AuthStatus>('/auth/status');
+  return request<AuthStatus>('/auth/status', { cache: 'no-store' });
 }
 
 export function register(username: string, password: string) {

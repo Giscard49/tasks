@@ -32,8 +32,8 @@ export function MultiUserApp({ session, onLogout }: MultiUserAppProps) {
     },
     {
       id: 'shared',
-      name: 'Shared Tasks',
-      initials: 'ST',
+      name: 'Mr/Mrs Ngabo Shared Tasks',
+      initials: 'GC',
       color: 'bg-gradient-to-r from-blue-500 to-purple-500',
       type: 'shared',
     },

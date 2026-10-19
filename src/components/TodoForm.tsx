@@ -7,7 +7,7 @@ import { Label } from './ui/label';
 import { Calendar } from './ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
 import { X, Check, Calendar as CalendarIcon, Clock } from 'lucide-react';
-import { format } from 'date-fns@4.1.0';
+import { format } from 'date-fns';
 
 interface TodoFormProps {
   onSubmit: (text: string, priority: 'low' | 'medium' | 'high', dueDate?: Date) => void;
@@ -80,7 +80,7 @@ export function TodoForm({
   };
 
   return (
-    <Card className="p-4 border-2 border-dashed border-muted-foreground/30">
+    <Card className="p-3 sm:p-4 border-2 border-dashed border-muted-foreground/30">
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="space-y-3">
           <Input
@@ -117,14 +117,14 @@ export function TodoForm({
               Due Date & Time (optional)
             </Label>
             
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
                 <PopoverTrigger asChild>
                   <Button
                     variant="outline"
                     className="h-12 bg-input-background border-0 justify-start text-left font-normal"
                   >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    <CalendarIcon className="mr-2 h-4 w-4 shrink-0" />
                     {selectedDate ? (
                       format(selectedDate, "MMM dd")
                     ) : (
@@ -154,15 +154,15 @@ export function TodoForm({
                   type="time"
                   value={selectedTime}
                   onChange={(e) => setSelectedTime(e.target.value)}
-                  className="h-12 bg-input-background border-0 pl-10"
+                  className="h-12 bg-input-background border-0 pl-10 text-base"
                   disabled={!selectedDate}
                 />
               </div>
             </div>
 
             {selectedDate && (
-              <div className="flex items-center justify-between text-xs text-muted-foreground bg-muted/30 p-2 rounded">
-                <span>
+              <div className="flex items-start justify-between gap-2 text-xs text-muted-foreground bg-muted/30 p-2 rounded">
+                <span className="flex-1 min-w-0 break-words">
                   Due: {format(selectedDate, "EEEE, MMMM do, yyyy")} at {new Date(`2000-01-01T${selectedTime}`).toLocaleTimeString([], { 
                     hour: 'numeric', 
                     minute: '2-digit',

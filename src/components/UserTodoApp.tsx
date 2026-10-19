@@ -56,10 +56,10 @@ export function UserTodoApp({ user, currentUserId, token, tasks, onTasksChange, 
 
   useEffect(() => {
     const visibleTasks = isShared
-      ? tasks.filter(task => typeof task.owner !== 'string' && task.owner._id !== currentUserId)
-      : tasks.filter(task => (typeof task.owner === 'string' ? task.owner : task.owner._id) === currentUserId);
+      ? tasks.filter(task => task.owner.id !== currentUserId)
+      : tasks.filter(task => task.owner.id === currentUserId);
     setTodos(visibleTasks.map(task => ({
-      id: task._id,
+      id: task.id,
       text: task.title,
       completed: task.completed,
       priority: task.priority,
@@ -81,7 +81,7 @@ export function UserTodoApp({ user, currentUserId, token, tasks, onTasksChange, 
   const updateTodo = async (id: string, text: string, priority: 'low' | 'medium' | 'high', dueDate?: Date) => {
     try {
       const task = await updateTask(token, id, { title: text, priority, dueDate: dueDate?.toISOString() });
-      onTasksChange(prev => prev.map(item => item._id === id ? task : item));
+      onTasksChange(prev => prev.map(item => item.id === id ? task : item));
       setEditingId(null);
     } catch (requestError) {
       setError(requestError instanceof Error ? requestError.message : 'Unable to update task');
@@ -93,7 +93,7 @@ export function UserTodoApp({ user, currentUserId, token, tasks, onTasksChange, 
     if (!todo) return;
     try {
       const task = await updateTask(token, id, { completed: !todo.completed });
-      onTasksChange(prev => prev.map(item => item._id === id ? task : item));
+      onTasksChange(prev => prev.map(item => item.id === id ? task : item));
     } catch (requestError) {
       setError(requestError instanceof Error ? requestError.message : 'Unable to update task');
     }
@@ -102,7 +102,7 @@ export function UserTodoApp({ user, currentUserId, token, tasks, onTasksChange, 
   const deleteTodo = async (id: string) => {
     try {
       await deleteTask(token, id);
-      onTasksChange(prev => prev.filter(item => item._id !== id));
+      onTasksChange(prev => prev.filter(item => item.id !== id));
     } catch (requestError) {
       setError(requestError instanceof Error ? requestError.message : 'Unable to delete task');
     }
@@ -113,7 +113,7 @@ export function UserTodoApp({ user, currentUserId, token, tasks, onTasksChange, 
     if (!sharingId || !shareUsername.trim()) return;
     try {
       const task = await shareTask(token, sharingId, shareUsername.trim(), sharePermission);
-      onTasksChange(prev => prev.map(item => item._id === task._id ? task : item));
+      onTasksChange(prev => prev.map(item => item.id === task.id ? task : item));
       setSharingId(null);
       setShareUsername('');
     } catch (requestError) {
@@ -167,21 +167,21 @@ export function UserTodoApp({ user, currentUserId, token, tasks, onTasksChange, 
 
   return (
     <div className={`min-h-screen ${isShared ? 'bg-gradient-to-br from-blue-50 to-purple-50 dark:from-blue-950/10 dark:to-purple-950/10' : 'bg-background'}`}>
-      <div className="max-w-md mx-auto p-4 space-y-6">
-        {error && <p className="text-sm text-destructive">{error}</p>}
+      <div className="w-full max-w-md mx-auto px-4 py-4 sm:px-6 sm:py-6 space-y-6">
+        {error && <p className="text-sm text-destructive break-words">{error}</p>}
         {/* Header with Back Button */}
-        <div className="flex items-center justify-between pt-8">
-          <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center justify-between gap-3 pt-6 sm:pt-8">
+          <div className="flex items-center gap-3 min-w-0">
             <Button
               variant="ghost"
               size="sm"
               onClick={onBack}
-              className="h-10 w-10 p-0 mr-1"
+              className="h-10 w-10 p-0 mr-1 shrink-0"
             >
               <ArrowLeft className="w-5 h-5" />
             </Button>
             
-            <div className="relative">
+            <div className="relative shrink-0">
               <Avatar className="w-10 h-10">
                 <AvatarFallback className={`${user.color} text-white font-bold`}>
                   {user.initials}
@@ -194,19 +194,19 @@ export function UserTodoApp({ user, currentUserId, token, tasks, onTasksChange, 
               )}
             </div>
             
-            <div>
+            <div className="min-w-0">
               <div className="flex items-center gap-2">
-                <h1 className="text-2xl font-bold text-foreground">{user.name}</h1>
+                <h1 className="text-xl sm:text-2xl font-bold text-foreground truncate">{user.name}</h1>
                 {isShared && (
-                  <div className="px-2 py-1 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full text-xs text-white font-medium">
+                  <div className="shrink-0 px-2 py-1 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full text-xs text-white font-medium">
                     Shared
                   </div>
                 )}
               </div>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-muted-foreground truncate">
                 {isShared ? (
                   <span className="flex items-center gap-1">
-                    <Users className="w-3 h-3" />
+                    <Users className="w-3 h-3 shrink-0" />
                     {activeCount} active, {completedCount} completed goals
                   </span>
                 ) : (
@@ -215,7 +215,7 @@ export function UserTodoApp({ user, currentUserId, token, tasks, onTasksChange, 
               </p>
             </div>
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-2 shrink-0">
             <NotificationManager 
               userId={user.id}
               userName={user.name}
@@ -271,22 +271,23 @@ export function UserTodoApp({ user, currentUserId, token, tasks, onTasksChange, 
         />
 
         {sharingId && (
-          <form onSubmit={submitShare} className="space-y-3 rounded-lg border p-4">
+          <form onSubmit={submitShare} className="space-y-3 rounded-lg border p-3 sm:p-4">
             <p className="font-medium">Share this task</p>
             <Input
               value={shareUsername}
               onChange={(event) => setShareUsername(event.target.value)}
               placeholder="Username"
+              className="text-base"
               autoFocus
             />
             <Select value={sharePermission} onValueChange={(value) => setSharePermission(value as 'read' | 'write')}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectTrigger className="text-base"><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="read">Can view</SelectItem>
                 <SelectItem value="write">Can edit</SelectItem>
               </SelectContent>
             </Select>
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
               <Button type="submit" disabled={!shareUsername.trim()}>Share</Button>
               <Button type="button" variant="outline" onClick={() => setSharingId(null)}>Cancel</Button>
             </div>

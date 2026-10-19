@@ -1,4 +1,6 @@
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+// The Next.js route handlers under app/api/* replace the old Express backend,
+// so all requests go to the same origin under /api.
+const API_URL = '/api';
 
 export interface AuthUser {
   id: string;
@@ -10,15 +12,21 @@ export interface AuthSession {
   user: AuthUser;
 }
 
+export interface SharedWithEntry {
+  user: AuthUser;
+  permission: 'read' | 'write';
+}
+
 export interface ApiTask {
-  _id: string;
+  id: string;
   title: string;
   completed: boolean;
   priority: 'low' | 'medium' | 'high';
   createdAt: string;
-  dueDate?: string;
-  dueTime?: string;
-  owner: string | { _id: string; username: string };
+  dueDate?: string | null;
+  dueTime?: string | null;
+  owner: AuthUser;
+  sharedWith: SharedWithEntry[];
 }
 
 async function request<T>(path: string, options: RequestInit = {}, token?: string): Promise<T> {
@@ -27,6 +35,7 @@ async function request<T>(path: string, options: RequestInit = {}, token?: strin
   try {
     response = await fetch(`${API_URL}${path}`, {
       ...options,
+      credentials: 'same-origin',
       headers: {
         'Content-Type': 'application/json',
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
@@ -35,8 +44,12 @@ async function request<T>(path: string, options: RequestInit = {}, token?: strin
     });
   } catch (error) {
     const reason = error instanceof Error ? error.message : 'Unknown network error';
-    throw new Error(`Unable to reach the server. Start the backend and try again. (${reason})`);
+    throw new Error(
+      `Unable to reach the server. Make sure the app is running ("npm run dev") and reload the page. (${reason})`,
+    );
   }
+
+  if (response.status === 204) return undefined as T;
 
   const body = await response.json().catch(() => null);
   if (!response.ok) {
@@ -50,6 +63,10 @@ export function login(username: string, password: string) {
     method: 'POST',
     body: JSON.stringify({ username, password }),
   });
+}
+
+export function logout() {
+  return request<void>('/auth/logout', { method: 'POST' });
 }
 
 export function getTasks(token: string) {
@@ -84,11 +101,4 @@ export function shareTask(token: string, id: string, username: string, permissio
     method: 'POST',
     body: JSON.stringify({ username, permission }),
   }, token);
-}
-
-export function register(username: string, password: string) {
-  return request<AuthSession>('/auth/register', {
-    method: 'POST',
-    body: JSON.stringify({ username, password }),
-  });
 }

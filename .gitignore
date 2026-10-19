@@ -13,6 +13,8 @@ build/
 .vite/
 .cache/
 coverage/
+.next/
+next-env.d.ts
 
 # Backend logs and runtime files
 *.log

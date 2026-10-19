@@ -1,0 +1,62 @@
+// Prisma schema for the Tasks app.
+// The database is Supabase Postgres; Prisma is the ORM used by the Next.js API routes.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  id           String      @id @default(cuid())
+  username     String      @unique
+  passwordHash String
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+  tasks        Task[]
+  shares       TaskShare[]
+}
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+enum Permission {
+  READ
+  WRITE
+}
+
+model Task {
+  id        String      @id @default(cuid())
+  title     String      @db.VarChar(200)
+  completed Boolean     @default(false)
+  priority  Priority    @default(MEDIUM)
+  dueDate   DateTime?
+  dueTime   String?
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+  ownerId   String
+  owner     User        @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  sharedWith TaskShare[]
+
+  @@index([ownerId, createdAt(sort: Desc)])
+}
+
+model TaskShare {
+  id         String     @id @default(cuid())
+  permission Permission @default(READ)
+  createdAt  DateTime   @default(now())
+  taskId     String
+  task       Task       @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  userId     String
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([taskId, userId])
+  @@index([userId])
+}

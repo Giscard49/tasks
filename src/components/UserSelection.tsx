@@ -27,19 +27,19 @@ interface UserSelectionProps {
 export function UserSelection({ users, onSelectUser, getUserTaskCount, onLogout }: UserSelectionProps) {
   return (
     <div className="min-h-screen bg-background">
-      <div className="max-w-md mx-auto p-4 space-y-8">
+      <div className="w-full max-w-md mx-auto px-4 py-4 sm:px-6 sm:py-6 space-y-8">
         {/* Header */}
-        <div className="flex items-center justify-between pt-8">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center">
+        <div className="flex flex-wrap items-center justify-between gap-3 pt-6 sm:pt-8">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="w-10 h-10 shrink-0 bg-primary rounded-xl flex items-center justify-center">
               <Users className="w-6 h-6 text-primary-foreground" />
             </div>
-            <div>
-              <h1 className="text-2xl font-bold text-foreground">Our Tasks</h1>
-              <p className="text-sm text-muted-foreground">Choose your profile</p>
+            <div className="min-w-0">
+              <h1 className="text-2xl font-bold text-foreground truncate">Our Tasks</h1>
+              <p className="text-sm text-muted-foreground truncate">Choose your profile</p>
             </div>
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-2 shrink-0">
             <NotificationManager />
             <ThemeToggle />
             {onLogout && (
@@ -66,14 +66,14 @@ export function UserSelection({ users, onSelectUser, getUserTaskCount, onLogout 
             return (
               <div key={user.id}>
                 <Card 
-                  className={`p-6 hover:shadow-lg transition-all duration-200 cursor-pointer border-2 hover:border-primary/20 ${
+                  className={`p-4 sm:p-6 hover:shadow-lg transition-all duration-200 cursor-pointer border-2 hover:border-primary/20 ${
                     isShared ? 'bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950/20 dark:to-purple-950/20 border-gradient-to-r from-blue-200 to-purple-200 dark:from-blue-800 dark:to-purple-800' : ''
                   }`}
                   onClick={() => onSelectUser(user.id)}
                 >
-                  <div className="flex items-center gap-4">
-                    <div className="relative">
-                      <Avatar className="w-16 h-16">
+                  <div className="flex items-center gap-3 sm:gap-4">
+                    <div className="relative shrink-0">
+                      <Avatar className="w-14 h-14 sm:w-16 sm:h-16">
                         <AvatarFallback 
                           className={`${user.color} text-white text-lg font-bold`}
                         >
@@ -87,13 +87,13 @@ export function UserSelection({ users, onSelectUser, getUserTaskCount, onLogout 
                       )}
                     </div>
                     
-                    <div className="flex-1">
+                    <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
-                        <h3 className="text-xl font-bold text-foreground">
+                        <h3 className="text-lg sm:text-xl font-bold text-foreground truncate">
                           {user.name}
                         </h3>
                         {isShared && (
-                          <div className="px-2 py-1 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full text-xs text-white font-medium">
+                          <div className="shrink-0 px-2 py-1 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full text-xs text-white font-medium">
                             Shared
                           </div>
                         )}
@@ -101,8 +101,8 @@ export function UserSelection({ users, onSelectUser, getUserTaskCount, onLogout 
                       
                       {total > 0 ? (
                         <div className="space-y-2">
-                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                            <CheckSquare className="w-4 h-4" />
+                          <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-muted-foreground">
+                            <CheckSquare className="w-4 h-4 shrink-0" />
                             <span>{completed} of {total} tasks completed</span>
                             {isShared && <span>• Our goals</span>}
                           </div>
@@ -135,7 +135,7 @@ export function UserSelection({ users, onSelectUser, getUserTaskCount, onLogout 
                     
                     <Button 
                       variant="ghost" 
-                      className="opacity-60 group-hover:opacity-100 transition-opacity"
+                      className="hidden sm:inline-flex opacity-60 group-hover:opacity-100 transition-opacity shrink-0"
                     >
                       Open →
                     </Button>
@@ -159,7 +159,7 @@ export function UserSelection({ users, onSelectUser, getUserTaskCount, onLogout 
         {/* Quick Stats */}
         <Card className="p-4 bg-muted/50">
           <div className="text-center">
-            <div className="flex items-center justify-center gap-6 text-sm">
+            <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-sm">
               {users.map((user) => {
                 const { total } = getUserTaskCount(user.id);
                 return (

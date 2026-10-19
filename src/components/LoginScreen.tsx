@@ -5,7 +5,7 @@ import { Input } from './ui/input';
 import { Label } from './ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Alert, AlertDescription } from './ui/alert';
-import { login, register } from '../api';
+import { login } from '../api';
 import type { AuthSession } from '../api';
 
 interface LoginScreenProps {
@@ -18,7 +18,6 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [isRegistering, setIsRegistering] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -26,7 +25,7 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
     setIsLoading(true);
 
     try {
-      const session = await (isRegistering ? register(username, password) : login(username, password));
+      const session = await login(username, password);
       onLogin(session);
     } catch (requestError) {
       setError(requestError instanceof Error ? requestError.message : 'Unable to sign in');
@@ -56,7 +55,7 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
 
         <Card className="shadow-lg">
           <CardHeader className="space-y-1">
-            <CardTitle className="text-xl">{isRegistering ? 'Create account' : 'Sign in'}</CardTitle>
+            <CardTitle className="text-xl">Sign in</CardTitle>
             <CardDescription>
               Enter your credentials to continue
             </CardDescription>
@@ -113,18 +112,7 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
                 className="w-full" 
                 disabled={isLoading}
               >
-                {isLoading ? (isRegistering ? 'Creating account...' : 'Signing in...') : (isRegistering ? 'Create account' : 'Sign in')}
-              </Button>
-              <Button
-                type="button"
-                variant="ghost"
-                className="w-full"
-                onClick={() => {
-                  setIsRegistering(value => !value);
-                  setError('');
-                }}
-              >
-                {isRegistering ? 'Already have an account? Sign in' : 'Need an account? Sign up'}
+                {isLoading ? 'Signing in...' : 'Sign in'}
               </Button>
             </form>
           </CardContent>

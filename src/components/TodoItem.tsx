@@ -102,8 +102,8 @@ export function TodoItem({ todo, onToggle, onDelete, onEdit, onShare }: TodoItem
       exit={{ opacity: 0, x: -100 }}
       transition={{ duration: 0.2 }}
     >
-      <Card className={`p-4 border-l-4 ${getPriorityBorder(todo.priority)} hover:shadow-md transition-shadow group`}>
-        <div className="flex items-start gap-3">
+      <Card className={`p-3 sm:p-4 border-l-4 ${getPriorityBorder(todo.priority)} hover:shadow-md transition-shadow group`}>
+        <div className="flex items-start gap-2 sm:gap-3">
           <div className="pt-1">
             <Checkbox
               checked={todo.completed}
@@ -128,7 +128,7 @@ export function TodoItem({ todo, onToggle, onDelete, onEdit, onShare }: TodoItem
               {todo.text}
             </p>
             
-            <div className="flex items-center justify-between mt-2 gap-2">
+            <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1 mt-2">
               <div className="text-xs text-muted-foreground">
                 Created {todo.createdAt.toLocaleDateString()} at {todo.createdAt.toLocaleTimeString([], { 
                   hour: '2-digit', 
@@ -145,13 +145,15 @@ export function TodoItem({ todo, onToggle, onDelete, onEdit, onShare }: TodoItem
             </div>
           </div>
           
-          <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+          {/* Always visible on touch/small screens; hover-reveal on desktop */}
+          <div className="flex shrink-0 gap-1 opacity-100 transition-opacity md:opacity-0 md:group-hover:opacity-100 md:focus-within:opacity-100">
             <Button
               variant="ghost"
               size="sm"
               onClick={onEdit}
               className="h-8 w-8 p-0 hover:bg-accent"
               disabled={todo.completed}
+              title="Edit task"
             >
               <Edit3 className="w-4 h-4 text-muted-foreground" />
             </Button>
@@ -173,6 +175,7 @@ export function TodoItem({ todo, onToggle, onDelete, onEdit, onShare }: TodoItem
               size="sm"
               onClick={onDelete}
               className="h-8 w-8 p-0 hover:bg-destructive/10"
+              title="Delete task"
             >
               <Trash2 className="w-4 h-4 text-destructive" />
             </Button>

@@ -49,8 +49,8 @@ export function MultiUserApp({ session, onLogout }: MultiUserAppProps) {
 
   const getUserTaskCount = (userId: string) => {
     const visibleTasks = userId === 'shared'
-      ? tasks.filter(task => typeof task.owner !== 'string' && task.owner._id !== session.user.id)
-      : tasks.filter(task => (typeof task.owner === 'string' ? task.owner : task.owner._id) === userId);
+      ? tasks.filter(task => task.owner.id !== session.user.id)
+      : tasks.filter(task => task.owner.id === userId);
     return {
       total: visibleTasks.length,
       completed: visibleTasks.filter(task => task.completed).length,

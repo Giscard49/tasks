@@ -1,0 +1,15 @@
+@import "tailwindcss";
+@import "../styles/globals.css";
+
+@layer base {
+  /* Respect notches / rounded corners / home indicators on phones. */
+  body {
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+  }
+
+  /* Cleaner tap feedback on touch devices. */
+  html {
+    -webkit-tap-highlight-color: transparent;
+  }
+}

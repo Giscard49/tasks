@@ -16,13 +16,13 @@ export function TodoFilters({ filter, sort, onFilterChange, onSortChange }: Todo
       {/* Filter Tabs */}
       <Tabs value={filter} onValueChange={(value) => onFilterChange(value as FilterType)}>
         <TabsList className="grid w-full grid-cols-3 h-12">
-          <TabsTrigger value="all" className="text-sm">
+          <TabsTrigger value="all" className="text-xs sm:text-sm px-2">
             All
           </TabsTrigger>
-          <TabsTrigger value="active" className="text-sm">
+          <TabsTrigger value="active" className="text-xs sm:text-sm px-2">
             Active
           </TabsTrigger>
-          <TabsTrigger value="completed" className="text-sm">
+          <TabsTrigger value="completed" className="text-xs sm:text-sm px-2">
             Completed
           </TabsTrigger>
         </TabsList>

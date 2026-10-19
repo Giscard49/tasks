@@ -89,7 +89,7 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
           <p className="text-gray-600 dark:text-gray-400">
             {isRegistering
               ? 'This app only allows two accounts'
-              : 'Sign in to access your tasks'}
+              : 'Sign in to access Mr/Mrs Ngabo tasks'}
           </p>
         </div>
 

@@ -1,94 +1,167 @@
-# Modern Mobile To-Do List App
 
-A Next.js to-do app.
+# Tasks — Modern Task Management App
 
-## Stack
+A full-stack task management application built with **Next.js 16, TypeScript, Prisma, and Supabase**. Create and manage personal tasks, collaborate through task sharing, and control access with read and write permissions.
 
-- **Next.js 16** (App Router) — frontend **and** backend. The old Express API now lives in `src/app/api/*` as route handlers.
-- **Prisma** — ORM, schema in `prisma/schema.prisma`.
-- **Supabase** — the Postgres database that Prisma connects to.
-- **Auth** — username/password with bcrypt, JWT session in an httpOnly cookie.
+🌐 **Live Demo:** https://tasks-neon-nine.vercel.app
 
-## Setup
+---
 
-1. Install dependencies:
+## Overview
+
+Tasks is a modern task management application designed to help users organize their work and collaborate with others.
+
+The application includes secure authentication, personal task management, and shared task access with permission-based controls.
+
+## Features
+
+- **User Authentication** — Account authentication with bcrypt password hashing and JWT sessions.
+- **Task Management** — Create, view, update, and delete tasks.
+- **Task Sharing** — Share tasks with other users.
+- **Access Permissions** — Assign read or write permissions to shared tasks.
+- **Private Tasks** — Tasks remain private to their owners by default.
+- **REST API** — Backend endpoints for authentication and task operations.
+- **Responsive Interface** — Modern application interface built with React and Tailwind CSS.
+
+## Technology Stack
+
+| Technology | Purpose |
+|---|---|
+| Next.js 16 | Full-stack framework and App Router |
+| TypeScript | Type-safe development |
+| React | User interface |
+| Tailwind CSS v4 | Styling |
+| Prisma | Database ORM |
+| Supabase | PostgreSQL database |
+| bcrypt | Password hashing |
+| JWT | Authentication sessions |
+| Vercel | Deployment |
+
+## Getting Started
+
+### Prerequisites
+
+- Node.js
+- npm
+- A Supabase PostgreSQL database
+
+### Installation
+
+1. Clone the repository:
+
+   ```bash
+   git clone https://github.com/Giscard49/tasks.git
+   ```
+
+2. Navigate into the project:
+
+   ```bash
+   cd tasks
+   ```
+
+3. Install dependencies:
 
    ```bash
    npm install
    ```
 
-2. Configure environment variables:
+4. Create your environment file:
 
    ```bash
    cp .env.example .env
    ```
 
-   Fill in:
-   - `DATABASE_URL` — Supabase session **pooler** connection string (port 6543), used by the app at runtime.
-   - `DIRECT_URL` — Supabase **direct** connection string (port 5432), used by Prisma for schema pushes/migrations.
-   - `JWT_SECRET` — a long random string, e.g. `openssl rand -hex 32`.
+5. Configure the environment variables in `.env`, including your Supabase PostgreSQL connection string:
 
-3. Create the tables in Supabase and generate the Prisma client:
-
-   ```bash
-   npm run db:push      # syncs prisma/schema.prisma to Supabase
-   npm run db:generate  # generates the Prisma client
+   ```env
+   DATABASE_URL="your_database_connection_string"
    ```
 
-   > Tip: if `db:push` has trouble over the pooler, temporarily use the
-   > "Direct connection" string (port 5432) as `DATABASE_URL` for this command.
+   Use the complete variable configuration documented in `.env.example`.
 
-4. Run the dev server:
+6. Start the development server:
 
    ```bash
    npm run dev
    ```
 
-   Open http://localhost:3000.
+7. Open http://localhost:3000 in your browser.
 
-## Accounts
+## Project Structure
 
-The app allows **two accounts maximum**, created from the login screen:
-
-- While fewer than two accounts exist, the login screen shows **"Need an account? Sign up"**.
-- Once two accounts exist, sign-up disappears (the API also rejects further sign-ups with `403`).
-- Forgot a password? Wipe all accounts and start over:
-
-  ```bash
-  npm run db:reset-accounts
-  ```
-
-  (This deletes every account and its tasks, reopening both sign-up spots.)
-
-## Project structure
-
-```
+```text
 src/
-  app/                  # Next.js App Router
-    page.tsx            # main app entry (renders <AppShell />)
-    layout.tsx          # root layout + global styles
-    globals.css         # Tailwind v4 + theme (imports src/styles/globals.css)
-    api/                # backend (route handlers, replace the old Express server)
-      auth/             # login, logout
-      tasks/            # GET/POST /api/tasks
-        [id]/           # PATCH/DELETE /api/tasks/:id
-          share/        # POST /api/tasks/:id/share, DELETE .../share/:userId
-  components/           # React components (unchanged UI)
-  lib/                  # prisma client, auth (JWT/cookies), API helpers
-  api.ts                # frontend API client (fetch wrapper for /api)
-prisma/schema.prisma    # User, Task, TaskShare models
+├── app/
+│   ├── page.tsx
+│   ├── layout.tsx
+│   └── api/
+│       ├── auth/
+│       └── tasks/
+├── components/
+├── lib/
+└── api.ts
+
+prisma/
+└── schema.prisma
 ```
 
-## API
+- `src/app/` — Next.js App Router pages and API routes.
+- `src/components/` — Reusable React components.
+- `src/lib/` — Prisma client, authentication, and API helpers.
+- `prisma/` — Database schema and models.
 
-Authentication: `POST /api/auth/login` sets an httpOnly session cookie (a `token` is also
-returned and accepted as `Authorization: Bearer <token>`). `POST /api/auth/logout` clears it.
+## API Endpoints
 
-- `GET    /api/tasks` — tasks you own plus tasks shared with you
-- `POST   /api/tasks` — create a task
-- `PATCH  /api/tasks/:id` — edit (owner or write-permission holder)
-- `DELETE /api/tasks/:id` — delete (owner only)
-- `POST   /api/tasks/:id/share` — share with `{ username, permission: "read" | "write" }`
-- `DELETE /api/tasks/:id/share/:userId` — revoke a share
+### Authentication
 
-Tasks are private to their owner by default.
+| Method | Endpoint | Description |
+|---|---|---|
+| POST | `/api/auth/login` | Authenticate a user |
+| POST | `/api/auth/logout` | End the current session |
+
+Login sets an HTTP-only session cookie. A JWT token is also returned and accepted through a Bearer authorization header.
+
+### Tasks
+
+| Method | Endpoint | Description |
+|---|---|---|
+| GET | `/api/tasks` | Retrieve owned and shared tasks |
+| POST | `/api/tasks` | Create a task |
+| PATCH | `/api/tasks/:id` | Update a task |
+| DELETE | `/api/tasks/:id` | Delete an owned task |
+| POST | `/api/tasks/:id/share` | Share a task |
+| DELETE | `/api/tasks/:id/share/:userId` | Revoke shared access |
+
+Shared task permissions support `read` and `write` access.
+
+## Database
+
+The application uses **Prisma ORM** with a Supabase-hosted PostgreSQL database.
+
+The Prisma schema includes:
+
+- User
+- Task
+- TaskShare
+
+## Deployment
+
+The application is deployed on Vercel.
+
+**Live Application:** https://tasks-neon-nine.vercel.app
+
+## Contributing
+
+Contributions and suggestions are welcome. Feel free to fork the repository and submit a pull request.
+
+## Author
+
+**Giscard Ngabonziza**
+
+- GitHub: [@Giscard49](https://github.com/Giscard49)
+- Portfolio: https://giscard.com
+- LinkedIn: https://www.linkedin.com/in/giscard-ngabo-03534b232/
+
+---
+
+
